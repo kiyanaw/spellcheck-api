@@ -7,3 +7,4 @@ scripts/fsts-to-upload/*.hfstol
 __pycache__/
 *.pyc
 .pytest_cache/
+.ruff_cache/

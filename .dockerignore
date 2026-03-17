@@ -1,5 +1,6 @@
 .claude
 .git
+src/.ruff_cache
 .github
 .gitignore
 .serverless

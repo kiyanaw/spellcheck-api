@@ -8,9 +8,9 @@ its own FST files yet.
 import re
 
 FST_FILES = {
-    'strict-analyzer': 'crk-strict-analyzer.hfstol',
-    'relaxed-analyzer': 'crk-relaxed-analyzer.hfstol',
-    'strict-generator': 'crk-strict-generator.hfstol',
+    'strict-analyzer': 'crk-strict-analyzer-giellaltbuild.hfstol',
+    'relaxed-analyzer': 'crk-relaxed-analyzer-giellaltbuild.hfstol',
+    'strict-generator': 'crk-strict-generator-giellaltbuild.hfstol',
 }
 
 _PUNCTUATION = re.compile(r'[.,/#!$%\^&\*;:{}=_`~()]')
