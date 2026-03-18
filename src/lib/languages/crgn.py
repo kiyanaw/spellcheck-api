@@ -1,5 +1,5 @@
 """
-Special processing functions for Cree (crgn) language.
+Special processing functions for Michif (Northern) (crgn) language.
 
 Note: Currently uses the same FST files as CRK since CRGN doesn't have
 its own FST files yet.

@@ -1,5 +1,5 @@
 """
-Special processing functions for Nishnaabemwin (Corbiere-style) (otwc) language.
+Special processing functions for Nishnaabemowin (Odawa - Corbiere) (otwc) language.
 """
 
 import re

@@ -1,5 +1,5 @@
 """
-Special processing functions for Plains Cree (crk) language.
+Special processing functions for Nêhiyawêwin (Plains Cree Y-dialect) (crk) language.
 """
 
 import re
