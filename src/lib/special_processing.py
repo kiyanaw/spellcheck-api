@@ -5,14 +5,17 @@ Provides a centralized registry for language-specific text processing functions.
 Each language defines its own special processing logic.
 """
 
-from lib.languages import crk, crgn, otwc, otwr, ciw
+from lib.languages import crk, crgn, otwc, otwr, ciw, bla, cwd, gle
 
 _languages = {
-    'crk': crk,
+    'bla': bla,
+    'ciw': ciw,
     'crgn': crgn,
+    'crk': crk,
+    'cwd': cwd,
+    'gle': gle,
     'otwc': otwc,
     'otwr': otwr,
-    'ciw': ciw,
 }
 
 
