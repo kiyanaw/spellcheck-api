@@ -1,0 +1,189 @@
+service: spellcheck-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: ${opt:stage, 'staging'}
+
+  ecr:
+    images:
+      spellcheck-api:
+        path: ./
+
+  apiGateway:
+    restApiId: ${file(./scripts/api-gateway-info.json):restApiId}
+    restApiRootResourceId: ${file(./scripts/api-gateway-info.json):restApiRootResourceId}
+    usagePlan:
+      throttle:
+        burstLimit: 20
+        rateLimit: 10
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:ListBucket
+          Resource:
+            - !GetAtt FstBucket.Arn
+            - !Sub '${FstBucket.Arn}/*'
+        - Effect: Allow
+          Action:
+            - elasticfilesystem:ClientMount
+            - elasticfilesystem:ClientWrite
+            - elasticfilesystem:ClientRootAccess
+          Resource: !GetAtt SpellcheckApiAccessPoint.Arn
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: api.kiyanaw.${self:custom.domainSuffix.${self:provider.stage}}
+    certificateArn: ${file(./scripts/cert-info.json):certificateArn}
+    createRoute53Record: ${self:custom.createDnsRecord.${self:provider.stage}}
+  domainSuffix:
+    staging: dev
+    production: net
+  createDnsRecord:
+    staging: true
+    production: false
+
+  vpc:
+    vpcId: ${file(./scripts/vpc-info.json):vpcId}
+    subnet1: ${file(./scripts/vpc-info.json):subnet1}
+    subnet2: ${file(./scripts/vpc-info.json):subnet2}
+    securityGroupId: ${file(./scripts/vpc-info.json):securityGroupId}
+    routeTableId: ${file(./scripts/vpc-info.json):routeTableId}
+    hasS3Endpoint: ${file(./scripts/vpc-info.json):hasS3Endpoint}
+
+functions:
+  spellcheckApi:
+    image:
+      name: spellcheck-api
+    memorySize: 3008
+    timeout: 29
+    environment:
+      FST_BUCKET_NAME: !Ref FstBucket
+      REGION: ${self:provider.region}
+    vpc:
+      subnetIds:
+        - ${self:custom.vpc.subnet1}
+        - ${self:custom.vpc.subnet2}
+      securityGroupIds:
+        - ${self:custom.vpc.securityGroupId}
+    fileSystemConfig:
+      localMountPath: /mnt/fsts
+      arn: !GetAtt SpellcheckApiAccessPoint.Arn
+    dependsOn:
+      - SpellcheckApiMountTarget1
+      - SpellcheckApiMountTarget2
+    events:
+      - http:
+          path: spellcheck/suggest
+          method: post
+          cors: true
+          private: true
+      - http:
+          path: spellcheck/bulk-lookup
+          method: post
+          cors: true
+          private: true
+
+resources:
+  Conditions:
+    CreateS3Endpoint: !Equals ['${self:custom.vpc.hasS3Endpoint}', 'false']
+
+  Resources:
+    # ==========================================
+    # EFS File System for spellcheck-api Lambda
+    # Used for caching FST (Finite State Transducer) files from S3
+    # Mount path: /mnt/fsts
+    # ==========================================
+    SpellcheckApiEFS:
+      Type: AWS::EFS::FileSystem
+      Properties:
+        FileSystemTags:
+          - Key: Name
+            Value: spellcheck-api-fsts-${self:provider.stage}
+          - Key: Environment
+            Value: ${self:provider.stage}
+        PerformanceMode: generalPurpose
+        ThroughputMode: bursting
+        Encrypted: true
+
+    SpellcheckApiMountTarget1:
+      Type: AWS::EFS::MountTarget
+      Properties:
+        FileSystemId: !Ref SpellcheckApiEFS
+        SubnetId: ${self:custom.vpc.subnet1}
+        SecurityGroups:
+          - ${self:custom.vpc.securityGroupId}
+
+    SpellcheckApiMountTarget2:
+      Type: AWS::EFS::MountTarget
+      Properties:
+        FileSystemId: !Ref SpellcheckApiEFS
+        SubnetId: ${self:custom.vpc.subnet2}
+        SecurityGroups:
+          - ${self:custom.vpc.securityGroupId}
+
+    SpellcheckApiAccessPoint:
+      Type: AWS::EFS::AccessPoint
+      Properties:
+        FileSystemId: !Ref SpellcheckApiEFS
+        PosixUser:
+          Uid: '1000'
+          Gid: '1000'
+        RootDirectory:
+          CreationInfo:
+            OwnerGid: '1000'
+            OwnerUid: '1000'
+            Permissions: '777'
+          Path: '/fsts'
+
+    # ==========================================
+    # S3 Bucket for FST files
+    # Unique per AWS account to avoid name collisions
+    # ==========================================
+    FstBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub 'spellcheck-api-fsts-${AWS::AccountId}-${self:provider.stage}'
+
+    # ==========================================
+    # VPC S3 Gateway Endpoint
+    # Only created if one doesn't already exist in the VPC
+    # Required for Lambda in VPC to reach S3 without NAT Gateway
+    # ==========================================
+    VpcS3Endpoint:
+      Type: AWS::EC2::VPCEndpoint
+      Condition: CreateS3Endpoint
+      Properties:
+        VpcId: ${self:custom.vpc.vpcId}
+        ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+        RouteTableIds:
+          - ${self:custom.vpc.routeTableId}
+        VpcEndpointType: Gateway
+
+  Outputs:
+    FstBucketName:
+      Description: S3 bucket name for FST files
+      Value: !Ref FstBucket
+      Export:
+        Name: ${self:service}-${self:provider.stage}-FstBucketName
+
+    SpellcheckApiEFSId:
+      Description: EFS File System ID for spellcheck-api Lambda
+      Value: !Ref SpellcheckApiEFS
+      Export:
+        Name: ${self:service}-${self:provider.stage}-SpellcheckApiEFSId
+
+    SpellcheckApiEFSAccessPointArn:
+      Description: EFS Access Point ARN for spellcheck-api Lambda (mount at /mnt/fsts)
+      Value: !GetAtt SpellcheckApiAccessPoint.Arn
+      Export:
+        Name: ${self:service}-${self:provider.stage}-SpellcheckApiEFSAccessPointArn

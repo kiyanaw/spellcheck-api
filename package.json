@@ -1,0 +1,26 @@
+{
+  "name": "spellcheck-api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "deploy:staging": "node scripts/get-vpc-info.js && node scripts/get-cert-arn.js --stage staging && node scripts/get-api-gateway.js --stage staging && sls create_domain --stage staging && sls deploy --stage staging",
+    "deploy:production": "node scripts/get-vpc-info.js && node scripts/get-cert-arn.js --stage production && node scripts/get-api-gateway.js --stage production && sls create_domain --stage production && sls deploy --stage production",
+    "upload-fsts": "node scripts/upload-fst-files.js",
+    "create-api-key": "node scripts/create-api-key.js",
+    "test": "bash scripts/test.sh",
+    "lint": "bash scripts/lint.sh"
+  },
+  "devDependencies": {
+    "serverless": "^3",
+    "serverless-domain-manager": "^7"
+  },
+  "dependencies": {
+    "@aws-sdk/client-acm": "^3",
+    "@aws-sdk/client-api-gateway": "^3",
+    "@aws-sdk/client-cloudformation": "^3",
+    "@aws-sdk/client-ec2": "^3",
+    "@aws-sdk/client-s3": "^3",
+    "@aws-sdk/client-sts": "^3",
+    "@aws-sdk/credential-providers": "^3"
+  }
+}

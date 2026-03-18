@@ -1,1 +1,10 @@
-
+node_modules/
+.serverless/
+scripts/vpc-info.json
+scripts/cert-info.json
+scripts/api-gateway-info.json
+scripts/fsts-to-upload/*.hfstol
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/

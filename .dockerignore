@@ -1,0 +1,11 @@
+.claude
+.git
+src/.ruff_cache
+.github
+.gitignore
+.serverless
+node_modules
+scripts
+README.md
+requirements-dev.txt
+docs
