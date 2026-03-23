@@ -1,5 +1,5 @@
 """
-Special processing functions for Nishnaabemwin (Rhodes-style) (otwr) language.
+Special processing functions for Nishnaabemowin (Odawa - Rhodes) (otwr) language.
 """
 
 import re

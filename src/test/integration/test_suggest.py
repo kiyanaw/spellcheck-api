@@ -4,11 +4,14 @@ import pytest
 import requests
 
 LANGUAGES = [
-    ("crk", "êkwa"),
+    ("bla", "oki"),
+    ("ciw", "niin"),
     ("crgn", "êkwa"),
+    ("crk", "êkwa"),
+    ("cwd", "êkwa"),
+    ("gle", "agus"),
     ("otwc", "niin"),
     ("otwr", "niin"),
-    ("ciw", "niin"),
 ]
 
 

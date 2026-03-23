@@ -2,14 +2,21 @@
 Transducer management and analysis functions.
 
 Handles loading and using FST transducers for word analysis.
-Transducers are loaded from EFS each time (not cached in memory)
-to avoid keeping large objects (hundreds of MB) in memory.
-The FST files themselves are cached on EFS after first download.
+Transducers are cached in module-level memory after first load so that warm
+Lambda invocations reuse already-loaded objects. Without caching, Python's GC
+does not promptly free the C-extension memory from TransducerFile objects, so
+each request would load a new copy before the previous one is released — causing
+memory to grow unboundedly across warm invocations.
+The FST files themselves are also cached on EFS after first S3 download.
 """
 
 from lib import fst as fst_module
 from lib import special_processing
 from lib.utils import prioritize_particles
+
+# Cache of loaded TransducerFile objects, keyed by (language_code, fst_type).
+# Persists across warm Lambda invocations.
+_transducer_cache: dict = {}
 
 
 def _extract_analyses(raw_results):
@@ -56,7 +63,7 @@ def _load_transducer_file(fst_path):
 
 
 def _get_transducer(language_code, fst_type):
-    """Load a transducer for the given language and FST type. Returns None if not available."""
+    """Load a transducer for the given language and FST type, using the cache. Returns None if not available."""
     processor = special_processing.get_language_processor(language_code)
     if not processor:
         raise ValueError(f'No language processor found for language: {language_code}')
@@ -65,22 +72,26 @@ def _get_transducer(language_code, fst_type):
     if not processor.FST_FILES.get(fst_type):
         return None
 
+    cache_key = (language_code, fst_type)
+    if cache_key in _transducer_cache:
+        return _transducer_cache[cache_key]
+
     file_name = processor.FST_FILES[fst_type]
     fst_path = fst_module.download_fst_from_s3(file_name)
-    return _load_transducer_file(fst_path)
+    transducer = _load_transducer_file(fst_path)
+    _transducer_cache[cache_key] = transducer
+    return transducer
 
 
 def get_strict_analyzer(language_code):
-    """Load strict analyzer for a language from EFS."""
+    """Load strict analyzer for a language, using the cache."""
     processor = special_processing.get_language_processor(language_code)
     if not processor:
         raise ValueError(f'No language processor found for language: {language_code}')
     if not hasattr(processor, 'FST_FILES') or not processor.FST_FILES.get('strict-analyzer'):
         raise ValueError(f'No strict-analyzer FST file defined for language: {language_code}')
 
-    file_name = processor.FST_FILES['strict-analyzer']
-    fst_path = fst_module.download_fst_from_s3(file_name)
-    return _load_transducer_file(fst_path)
+    return _get_transducer(language_code, 'strict-analyzer')
 
 
 def get_relaxed_analyzer(language_code):

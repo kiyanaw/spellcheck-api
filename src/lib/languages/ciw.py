@@ -1,5 +1,5 @@
 """
-Special processing functions for Nishnaabemowin (Ojibwe) (ciw) language.
+Special processing functions for Anishnaabemowin (Ojibwe) (ciw) language.
 """
 
 import re
