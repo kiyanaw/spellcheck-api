@@ -10,5 +10,5 @@ docker run --rm \
     python -m venv /opt/venv &&
     /opt/venv/bin/pip install hfst-altlab -r /requirements-dev.txt -q &&
     /opt/venv/bin/ruff check /var/task &&
-    PYTHONPATH=/var/task /opt/venv/bin/python -m pytest /var/task/test/ -v
+    PYTHONPATH=/var/task /opt/venv/bin/python -m pytest /var/task/test/ -v -m 'not integration'
   "

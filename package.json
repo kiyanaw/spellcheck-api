@@ -8,6 +8,8 @@
     "upload-fsts": "node scripts/upload-fst-files.js",
     "create-api-key": "node scripts/create-api-key.js",
     "test": "bash scripts/test.sh",
+    "test:integration:staging": "bash scripts/integration-test.sh --stage staging",
+    "test:integration:production": "bash scripts/integration-test.sh --stage production",
     "lint": "bash scripts/lint.sh"
   },
   "devDependencies": {

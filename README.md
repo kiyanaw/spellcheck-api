@@ -60,7 +60,7 @@ Use `--update` to re-upload existing files, `--verbose` for detailed output.
 API keys are managed manually so each service or user gets their own key. Use a descriptive `--name` that identifies the consumer.
 
 ```sh
-AWS_PROFILE=<your-profile> npm run create-api-key -- --name kiyanaw-backend --stage staging
+AWS_PROFILE=<your-profile> npm run create-api-key -- --name transcribe --stage staging
 ```
 
 The script creates the key, associates it with the usage plan, and prints the key value. Store the value securely — to revoke access, delete the key from **API Gateway > API Keys** in the AWS console.
