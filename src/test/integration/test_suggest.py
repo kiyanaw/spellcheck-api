@@ -1,4 +1,4 @@
-"""Integration tests for POST /spellcheck/suggest."""
+"""Integration tests for POST /suggest."""
 
 import pytest
 import requests
@@ -15,8 +15,8 @@ LANGUAGES = [
 @pytest.mark.parametrize("language_code,word", LANGUAGES)
 def test_suggest_returns_200(api_url, api_headers, language_code, word):
     resp = requests.post(
-        f"{api_url}/spellcheck/suggest",
-        json={"language_code": language_code, "words": [word]},
+        f"{api_url}/suggest",
+        json={"languageCode": language_code, "words": [word]},
         headers=api_headers,
         timeout=30,
     )
@@ -27,8 +27,8 @@ def test_suggest_returns_200(api_url, api_headers, language_code, word):
 @pytest.mark.parametrize("language_code,word", LANGUAGES)
 def test_suggest_response_values_are_lists(api_url, api_headers, language_code, word):
     resp = requests.post(
-        f"{api_url}/spellcheck/suggest",
-        json={"language_code": language_code, "words": [word]},
+        f"{api_url}/suggest",
+        json={"languageCode": language_code, "words": [word]},
         headers=api_headers,
         timeout=30,
     )
@@ -41,7 +41,7 @@ def test_suggest_response_values_are_lists(api_url, api_headers, language_code, 
 
 def test_suggest_invalid_body_returns_400(api_url, api_headers):
     resp = requests.post(
-        f"{api_url}/spellcheck/suggest",
+        f"{api_url}/suggest",
         data="not json",
         headers={**api_headers, "Content-Type": "application/json"},
         timeout=30,
@@ -51,7 +51,7 @@ def test_suggest_invalid_body_returns_400(api_url, api_headers):
 
 def test_suggest_missing_language_code_returns_400(api_url, api_headers):
     resp = requests.post(
-        f"{api_url}/spellcheck/suggest",
+        f"{api_url}/suggest",
         json={"words": ["êkwa"]},
         headers=api_headers,
         timeout=30,
@@ -61,8 +61,8 @@ def test_suggest_missing_language_code_returns_400(api_url, api_headers):
 
 def test_suggest_missing_words_returns_400(api_url, api_headers):
     resp = requests.post(
-        f"{api_url}/spellcheck/suggest",
-        json={"language_code": "crk"},
+        f"{api_url}/suggest",
+        json={"languageCode": "crk"},
         headers=api_headers,
         timeout=30,
     )

@@ -3,10 +3,8 @@
 import pytest
 
 
-def pytest_collection_modifyitems(items):
-    for item in items:
-        if "integration" in item.nodeid:
-            item.add_marker(pytest.mark.integration)
+def pytest_configure(config):
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
 
 
 @pytest.fixture(scope="session")

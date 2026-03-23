@@ -27,9 +27,9 @@ if [[ -z "$STAGE" ]]; then
 fi
 
 if [[ "$STAGE" == "staging" ]]; then
-  BASE_URL="https://spellcheck.kiyanaw.dev"
+  BASE_URL="https://api.kiyanaw.dev/spellcheck"
 elif [[ "$STAGE" == "production" ]]; then
-  BASE_URL="https://spellcheck.kiyanaw.net"
+  BASE_URL="https://api.kiyanaw.net/spellcheck"
 else
   echo "Invalid stage: $STAGE. Must be 'staging' or 'production'." >&2
   exit 1
@@ -58,4 +58,4 @@ export SPELLCHECK_API_URL="$BASE_URL"
 export SPELLCHECK_API_KEY="$API_KEY"
 
 echo "Running integration tests against $BASE_URL..."
-python -m pytest src/test/integration/ -v
+python3 -m pytest src/test/integration/ -v
