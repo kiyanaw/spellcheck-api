@@ -54,7 +54,8 @@ def _check_unknowns(items, language_code):
 
     print('original_lookup:', original_lookup)
 
-    to_lookup = list(original_lookup.keys())
+    # Cap analyses to avoid OOM on languages with large relaxed FSTs (e.g. otwr)
+    to_lookup = list(original_lookup.keys())[:100]
     if to_lookup:
         suggested = transducers.generate_strict(to_lookup, language_code)
         print('suggested:', suggested)
