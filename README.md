@@ -47,7 +47,21 @@ AWS_PROFILE=<your-profile> npm run deploy:production
 
 ### 3. Upload FST files
 
-Place `.hfstol` files in `scripts/fsts-to-upload/`, then:
+Place `.hfstol` or `.foma` files in `scripts/fsts-to-upload/`. `.foma` files are converted
+to `.hfstol` before uploading, which needs HFST installed locally (`hfst-fst2fst`, e.g.
+`apt install hfst`).
+
+For Border Lakes Ojibwe (`ojbl`), build [ishkodens-fst](https://github.com/wawiingetoontech/ishkodens-fst)
+(`cd src && bash compile.sh`) and copy these builds with an `ojbl-` prefix (filenames are
+S3 keys, so the prefix keeps them from clashing with other foma-built languages):
+
+```sh
+for f in full_lexicon_generate full_lexicon_generate_relaxed full_lexicon_analyze; do
+  cp <ishkodens-fst>/src/$f.foma scripts/fsts-to-upload/ojbl-$f.foma
+done
+```
+
+Then upload:
 
 ```sh
 AWS_PROFILE=<your-profile> npm run upload-fsts -- staging

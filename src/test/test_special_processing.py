@@ -1,7 +1,7 @@
 """Tests for lib/special_processing.py and language modules."""
 
 from lib import special_processing
-from lib.languages import crk, crgn, otwc, otwr, ciw
+from lib.languages import ciw, crgn, crk, ojbl, otwc, otwr
 
 
 class TestGetLanguageProcessor:
@@ -19,6 +19,9 @@ class TestGetLanguageProcessor:
 
     def test_ciw_returns_module(self):
         assert special_processing.get_language_processor('ciw') is ciw
+
+    def test_ojbl_returns_module(self):
+        assert special_processing.get_language_processor('ojbl') is ojbl
 
     def test_unknown_language_returns_none(self):
         assert special_processing.get_language_processor('xyz') is None
@@ -42,6 +45,11 @@ class TestHasFstFile:
 
     def test_ciw_has_generator(self):
         assert special_processing.has_fst_file('ciw', 'strict-generator')
+
+    def test_ojbl_has_all_fst_types(self):
+        assert special_processing.has_fst_file('ojbl', 'strict-analyzer')
+        assert special_processing.has_fst_file('ojbl', 'relaxed-analyzer')
+        assert special_processing.has_fst_file('ojbl', 'strict-generator')
 
     def test_otwc_has_generator(self):
         assert special_processing.has_fst_file('otwc', 'strict-generator')
@@ -90,3 +98,22 @@ class TestOtwcProcessCharacters:
 
     def test_none_returns_none(self):
         assert otwc.process_characters(None) is None
+
+
+class TestOjblProcessCharacters:
+    def test_strips_punctuation(self):
+        assert ojbl.process_characters('makwa.') == 'makwa'
+
+    def test_strips_surrounding_whitespace(self):
+        assert ojbl.process_characters(' makwa ') == 'makwa'
+
+    def test_keeps_hyphens_and_apostrophes(self):
+        # Preverbs are hyphenated and glottal stops are written with an apostrophe
+        assert ojbl.process_characters("nigii-ig") == 'nigii-ig'
+        assert ojbl.process_characters("anama'e-") == "anama'e-"
+
+    def test_none_returns_none(self):
+        assert ojbl.process_characters(None) is None
+
+    def test_empty_returns_empty(self):
+        assert ojbl.process_characters('') == ''

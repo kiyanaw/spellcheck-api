@@ -22,7 +22,7 @@ def _read_stored_etag(file_name):
         if os.path.exists(etag_path):
             with open(etag_path, 'r') as f:
                 return f.read().strip()
-    except Exception as e:
+    except OSError as e:
         print(f'Warning: Failed to read ETag for {file_name}: {e}')
     return None
 
@@ -32,7 +32,7 @@ def _store_etag(file_name, etag):
         etag_path = _get_etag_path(file_name)
         with open(etag_path, 'w') as f:
             f.write(etag)
-    except Exception as e:
+    except OSError as e:
         print(f'Warning: Failed to store ETag for {file_name}: {e}')
 
 
@@ -85,7 +85,7 @@ def download_fst_from_s3(file_name):
             print(f'FST file {file_name} exists but has no ETag. Re-downloading to create ETag...')
             try:
                 os.unlink(local_path)
-            except Exception as e:
+            except OSError as e:
                 print(f'Warning: Failed to remove old file {file_name}: {e}')
     elif file_exists and stored_etag == s3_etag:
         # File exists and ETags match - use cached version
@@ -97,7 +97,7 @@ def download_fst_from_s3(file_name):
             etag_path = _get_etag_path(file_name)
             if os.path.exists(etag_path):
                 os.unlink(etag_path)
-        except Exception as e:
+        except OSError as e:
             print(f'Warning: Failed to remove old file {file_name}: {e}')
 
     try:
@@ -105,7 +105,7 @@ def download_fst_from_s3(file_name):
         _store_etag(file_name, s3_etag)
         print(f'Downloaded FST file {file_name} from S3')
         return local_path
-    except ClientError as e:  # noqa: F821 — imported above in this function
+    except ClientError as e:
         if e.response['Error']['Code'] in ('404', 'NoSuchKey'):
             raise FileNotFoundError(f'FST file not found: {s3_key}')
         raise RuntimeError(f'Failed to download FST file {s3_key}: {e}')

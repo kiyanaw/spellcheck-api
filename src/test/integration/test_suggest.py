@@ -10,6 +10,7 @@ LANGUAGES = [
     ("crk", "êkwa"),
     ("cwd", "êkwa"),
     ("gle", "agus"),
+    ("ojbl", "makwa"),
     ("otwc", "niin"),
     ("otwr", "niin"),
 ]
