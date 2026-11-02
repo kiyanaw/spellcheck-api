@@ -1,7 +1,14 @@
 """Tests for lib/utils.py"""
 
 import json
-from lib.utils import prioritize_particles, parse_request_body, error_response, success_response, HEADERS
+
+from lib.utils import (
+    HEADERS,
+    error_response,
+    parse_request_body,
+    prioritize_particles,
+    success_response,
+)
 
 
 class TestPrioritizeParticles:

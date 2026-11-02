@@ -1,7 +1,7 @@
 """Tests for lib/special_processing.py and language modules."""
 
 from lib import special_processing
-from lib.languages import crk, crgn, otwc, otwr, ciw, ojbl
+from lib.languages import ciw, crgn, crk, ojbl, otwc, otwr
 
 
 class TestGetLanguageProcessor:

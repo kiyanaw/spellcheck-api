@@ -10,9 +10,13 @@ memory to grow unboundedly across warm invocations.
 The FST files themselves are also cached on EFS after first S3 download.
 """
 
+import logging
+
 from lib import fst as fst_module
 from lib import special_processing
 from lib.utils import prioritize_particles
+
+logger = logging.getLogger(__name__)
 
 # Cache of loaded TransducerFile objects, keyed by (language_code, fst_type).
 # Persists across warm Lambda invocations.
@@ -58,7 +62,7 @@ def _extract_analyses(raw_results):
 
 def _load_transducer_file(fst_path):
     """Import hfst_altlab lazily and return a TransducerFile instance."""
-    from hfst_altlab import TransducerFile  # noqa: PLC0415 — lazy import for testability
+    from hfst_altlab import TransducerFile  # lazy import for testability
     return TransducerFile(fst_path)
 
 
@@ -98,8 +102,8 @@ def get_relaxed_analyzer(language_code):
     """Load relaxed analyzer for a language from EFS. Returns None if not available."""
     try:
         return _get_transducer(language_code, 'relaxed-analyzer')
-    except Exception as e:
-        print(f'Failed to load relaxed analyzer for {language_code}: {e}')
+    except Exception:
+        logger.exception('Failed to load relaxed analyzer for %s', language_code)
         return None
 
 
@@ -107,8 +111,8 @@ def get_strict_generator(language_code):
     """Load strict generator for a language from EFS. Returns None if not available."""
     try:
         return _get_transducer(language_code, 'strict-generator')
-    except Exception as e:
-        print(f'Failed to load strict generator for {language_code}: {e}')
+    except Exception:
+        logger.exception('Failed to load strict generator for %s', language_code)
         return None
 
 
@@ -135,8 +139,8 @@ def analyze_strict(lookup, language_code):
             # Filter error analyses
             filtered = [a for a in analyses if '+Err/' not in a and 'Err/Frag' not in a]
             result[word] = prioritize_particles(filtered)
-        except Exception as e:
-            print(f'Error looking up word "{word}": {e}')
+        except Exception:
+            logger.exception('Error looking up word "%s"', word)
             result[word] = []
 
     return result
@@ -181,8 +185,8 @@ def analyze_relaxed(lookup, language_code):
                 raw = sorted(raw, key=lambda x: x.weight)
 
             result[word] = [item for item in (raw or []) if not _is_error_analysis(item)]
-        except Exception as e:
-            print(f'Error looking up word "{word}": {e}')
+        except Exception:
+            logger.exception('Error looking up word "%s"', word)
             result[word] = []
 
     return result
@@ -207,8 +211,8 @@ def generate_strict(lookup, language_code):
         try:
             raw = transducer.lookup(word)
             result[word] = _extract_analyses(raw)
-        except Exception as e:
-            print(f'Error generating for "{word}": {e}')
+        except Exception:
+            logger.exception('Error generating for "%s"', word)
             result[word] = []
 
     return result

@@ -1,7 +1,7 @@
 """Pytest configuration and shared fixtures."""
 
-import sys
 import os
+import sys
 
 # Ensure the src directory is on the path so lib imports work
 src_dir = os.path.dirname(os.path.dirname(__file__))
