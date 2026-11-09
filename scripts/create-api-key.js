@@ -17,6 +17,7 @@
 import { APIGatewayClient, CreateApiKeyCommand, CreateUsagePlanKeyCommand, GetApiKeyCommand } from '@aws-sdk/client-api-gateway';
 import { CloudFormationClient, DescribeStackResourceCommand } from '@aws-sdk/client-cloudformation';
 import { fromIni } from '@aws-sdk/credential-providers';
+import { requireAwsProfile } from './lib/aws-profile.js';
 
 const args = process.argv.slice(2);
 let name, stage, profile;
@@ -38,6 +39,8 @@ if (!['staging', 'production'].includes(stage)) {
   console.error(`Unknown stage "${stage}". Valid values: staging, production`);
   process.exit(1);
 }
+
+requireAwsProfile(profile);
 
 const clientConfig = { region: 'us-east-1' };
 if (profile) clientConfig.credentials = fromIni({ profile });

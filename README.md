@@ -29,7 +29,36 @@ Request body:
 
 - Docker (for building/testing the container locally)
 - Node.js 24+
-- AWS CLI configured with appropriate profile
+- AWS CLI with a profile for each account you deploy to (`aws configure list-profiles`)
+
+### AWS profile
+
+Every command that talks to AWS reads the profile from `AWS_PROFILE`, and exits with an
+error if it isn't set. Set it for one command, or export it for your shell session:
+
+```sh
+AWS_PROFILE=<your-profile> npm run deploy:staging
+
+# or, for every command in this shell:
+export AWS_PROFILE=<your-profile>
+npm run deploy:staging
+```
+
+Use the environment variable rather than `npm run deploy:staging -- --profile <your-profile>`.
+The deploy commands run several steps in a row, and a flag after `--` only reaches the last one.
+
+### Commands
+
+| Command | Needs `AWS_PROFILE` | Example |
+|---------|:---:|---------|
+| `deploy:staging`, `deploy:production` | yes | `AWS_PROFILE=<your-profile> npm run deploy:staging` |
+| `upload-fsts` | yes | `AWS_PROFILE=<your-profile> npm run upload-fsts -- staging [--update] [--verbose]` |
+| `create-api-key` | yes | `AWS_PROFILE=<your-profile> npm run create-api-key -- --name <consumer> --stage staging` |
+| `test:integration:staging`, `test:integration:production` | yes | `AWS_PROFILE=<your-profile> npm run test:integration:staging` |
+| `test` | no | `npm run test` (ruff and unit tests, in Docker) |
+| `lint` | no | `npm run lint` (ruff only, in Docker) |
+
+The setup steps below walk through deploying, uploading FSTs and creating API keys in order.
 
 ### 1. Install dependencies
 

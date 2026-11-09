@@ -26,6 +26,7 @@
 import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { fromIni } from '@aws-sdk/credential-providers';
+import { requireAwsProfile } from './lib/aws-profile.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readdir, readFile } from 'fs/promises';
@@ -55,6 +56,8 @@ if (!environment || !['staging', 'production'].includes(environment)) {
   console.error('Usage: node scripts/upload-fst-files.js <environment> [aws-profile] [--verbose] [--update]');
   process.exit(1);
 }
+
+requireAwsProfile(awsProfile);
 
 const logVerbose = (...args) => { if (isVerbose) console.log(...args); };
 
