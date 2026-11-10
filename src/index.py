@@ -9,8 +9,12 @@ Request body:
   { "languageCode": "crk", "words": ["word1", "word2", ...] }
 """
 
+import logging
+
 from lib import special_processing, transducers
-from lib.utils import parse_request_body, error_response, success_response
+from lib.utils import error_response, parse_request_body, success_response
+
+logger = logging.getLogger(__name__)
 
 
 def _process_words(words, language_code):
@@ -103,13 +107,13 @@ def _bulk_lookup(event):
             unknowns = [w for w, analyses in result.items() if not analyses]
             if unknowns:
                 result['_suggestions'] = _check_unknowns(unknowns, language_code)
-        except Exception as e:
-            print('Error generating suggestions:', e)
+        except Exception:
+            logger.exception('Error generating suggestions')
 
         print('final:', result)
         return success_response(200, result)
     except Exception as e:
-        print('Error in bulk lookup:', e)
+        logger.exception('Error in bulk lookup')
         return error_response(500, str(e))
 
 
@@ -145,7 +149,7 @@ def _suggest(event):
         print('final:', final)
         return success_response(200, final)
     except Exception as e:
-        print('Error in suggest:', e)
+        logger.exception('Error in suggest')
         return error_response(500, str(e))
 
 

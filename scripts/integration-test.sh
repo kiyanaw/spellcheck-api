@@ -35,6 +35,16 @@ else
   exit 1
 fi
 
+if [[ -z "$PROFILE" && -z "$AWS_PROFILE" && -z "$AWS_ACCESS_KEY_ID" ]]; then
+  echo "Error: AWS_PROFILE is not set." >&2
+  echo "" >&2
+  echo "Set it to the AWS profile for the account you are targeting, for example:" >&2
+  echo "  AWS_PROFILE=<your-profile> npm run test:integration:${STAGE}" >&2
+  echo "" >&2
+  echo "List your profiles with \`aws configure list-profiles\`. See \"AWS profile\" in README.md." >&2
+  exit 1
+fi
+
 AWS_ARGS=()
 if [[ -n "$PROFILE" ]]; then
   AWS_ARGS+=(--profile "$PROFILE")

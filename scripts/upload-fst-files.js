@@ -16,6 +16,9 @@
  *   --verbose  Show detailed logging
  *   --update   Re-upload existing files (by default, existing files are skipped)
  *
+ * Any `.foma` files in the folder are converted to `.hfstol` first (see lib/convert-foma.js),
+ * which needs `hfst-fst2fst` installed. Only the `.hfstol` files are uploaded.
+ *
  * The bucket name follows the convention: spellcheck-fsts-<AccountId>-<environment>
  * You can override it by setting the BUCKET_NAME environment variable.
  */
@@ -23,10 +26,12 @@
 import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { fromIni } from '@aws-sdk/credential-providers';
+import { requireAwsProfile } from './lib/aws-profile.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readdir, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
+import { convertFomaFiles } from './lib/convert-foma.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -51,6 +56,8 @@ if (!environment || !['staging', 'production'].includes(environment)) {
   console.error('Usage: node scripts/upload-fst-files.js <environment> [aws-profile] [--verbose] [--update]');
   process.exit(1);
 }
+
+requireAwsProfile(awsProfile);
 
 const logVerbose = (...args) => { if (isVerbose) console.log(...args); };
 
@@ -109,6 +116,17 @@ async function processFile(fileInfo, bucketName) {
 }
 
 async function main() {
+  // Convert any foma builds first, so a conversion failure stops before anything is uploaded
+  try {
+    if (!existsSync(LOCAL_FST_FOLDER)) throw new Error(`Local folder does not exist: ${LOCAL_FST_FOLDER}`);
+    const conversions = await convertFomaFiles(LOCAL_FST_FOLDER, logVerbose);
+    const converted = conversions.filter((c) => c.action === 'converted').length;
+    if (converted) console.log(`Converted ${converted} .foma file(s) to .hfstol\n`);
+  } catch (error) {
+    console.error('\nError converting .foma files:', error.message);
+    process.exit(1);
+  }
+
   const BUCKET_NAME = await resolveBucketName();
 
   logVerbose(`\nProcessing FST files for environment: ${environment}`);

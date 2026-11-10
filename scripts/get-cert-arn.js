@@ -18,6 +18,7 @@
 
 import { ACMClient, ListCertificatesCommand, DescribeCertificateCommand } from '@aws-sdk/client-acm';
 import { fromIni } from '@aws-sdk/credential-providers';
+import { requireAwsProfile } from './lib/aws-profile.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -45,6 +46,8 @@ const wildcardDomain = `*.kiyanaw.${domainSuffix[stage]}`;
 console.log(`Looking up ACM certificate for: ${wildcardDomain}`);
 
 // ACM certs for API Gateway custom domains must be in us-east-1
+requireAwsProfile(profile);
+
 const clientConfig = { region: 'us-east-1' };
 if (profile) {
   clientConfig.credentials = fromIni({ profile });

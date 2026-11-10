@@ -18,6 +18,7 @@ import {
   GetResourcesCommand,
 } from '@aws-sdk/client-api-gateway';
 import { fromIni } from '@aws-sdk/credential-providers';
+import { requireAwsProfile } from './lib/aws-profile.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -39,6 +40,8 @@ if (!stage || !['staging', 'production'].includes(stage)) {
 }
 
 const apiName = `kiyanaw-api-${stage}`;
+requireAwsProfile(profile);
+
 const clientConfig = { region: 'us-east-1' };
 if (profile) clientConfig.credentials = fromIni({ profile });
 

@@ -22,6 +22,7 @@ import {
   DescribeVpcEndpointsCommand,
 } from '@aws-sdk/client-ec2';
 import { fromIni } from '@aws-sdk/credential-providers';
+import { requireAwsProfile } from './lib/aws-profile.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -37,6 +38,8 @@ let profile;
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--profile' && args[i + 1]) profile = args[++i];
 }
+
+requireAwsProfile(profile);
 
 const clientConfig = { region };
 if (profile) {
